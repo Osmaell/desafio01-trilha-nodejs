@@ -40,7 +40,12 @@ app.get('/users', (request, response) => {
 });
 
 app.get('/todos', (request, response) => {
-  // Complete aqui
+
+  const {username} = request.headers;
+
+  const user = users.find(user => user.username === username);
+
+  return response.status(200).json(user.todos);
 });
 
 app.post('/todos', (request, response) => {
