@@ -11,12 +11,28 @@ app.use(express.json());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  
+  const {username} = request.headers;
+  const user = users.find(user => user.username === username);
+  
+  if (!user) {
+    return response.status(400).json({error: 'não existe um usuário com o username informado.'});
+  }
+
+  request.user = user;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
 
   const {name, username} = request.body;
+
+  const userExists = users.find(user => user.username === username);
+
+  if (userExists) {
+    return response.status(400).json({error: 'Já existe um usuário com o username informado.'});
+  }
 
   const user = { 
     id: uuidv4(),
@@ -39,16 +55,14 @@ app.get('/users', (request, response) => {
   return response.json(user);
 });
 
-app.get('/todos', (request, response) => {
+app.get('/todos', checksExistsUserAccount, (request, response) => {
 
-  const {username} = request.headers;
-
-  const user = users.find(user => user.username === username);
-
+  const user = request.user;
+  
   return response.status(200).json(user.todos);
 });
 
-app.post('/todos', (request, response) => {
+app.post('/todos', checksExistsUserAccount, (request, response) => {
 
   const {title, deadline} = request.body;
   
@@ -70,7 +84,24 @@ app.post('/todos', (request, response) => {
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  
+  const {username} = request.headers;
+  const {title, deadline} = request.body;
+  const {id} = request.params;
+
+  // const user = users.find(user => user.username === username);
+  const user = request.user;
+  const todo = user.todos.filter( (todo) => todo.id === id );
+
+  if (todo.length > 0 ) {
+
+    todo[0].title = title;
+    todo[0].deadline = deadline;
+
+    return response.status(200).json(user);
+  }
+  
+  return response.status(404).json({error: 'não existe um todo com o id passado na url.'});
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
