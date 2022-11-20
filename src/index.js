@@ -89,7 +89,10 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const {title, deadline} = request.body;
   const {id} = request.params;
 
-  // const user = users.find(user => user.username === username);
+  console.log(title);
+  console.log(deadline);
+  console.log(id);
+
   const user = request.user;
   const todo = user.todos.filter( (todo) => todo.id === id );
 
@@ -98,14 +101,25 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
     todo[0].title = title;
     todo[0].deadline = deadline;
 
-    return response.status(200).json(user);
+    return response.status(200).json(todo[0]);
   }
   
   return response.status(404).json({error: 'não existe um todo com o id passado na url.'});
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+
+  const {id} = request.params;
+  const user = request.user;
+  
+  const todo = user.todos.filter( (todo) => todo.id === id );
+
+  if(todo.length > 0) {
+    todo[0].done = true;
+    return response.status(200).json(todo[0]);
+  }
+
+  return response.status(404).send({error: 'id informado não corresponde a um todo existente.'});
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
