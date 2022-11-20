@@ -123,7 +123,19 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+
+  const user = request.user;
+  const {id} = request.params;
+
+  const todo = user.todos.filter( (todo) => todo.id === id );
+
+  if(todo.length > 0) {
+    const newTodos = user.todos.filter( todo => todo.id !== id );
+    user.todos = newTodos;
+    return response.status(204).send();
+  }
+
+  return response.status(404).send({error: 'id informado não corresponde a um todo existente.'});
 });
 
 module.exports = app;
